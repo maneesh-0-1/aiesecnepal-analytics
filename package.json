@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "worker": "node scripts/auto-sync.mjs"
+    "worker": "node scripts/auto-sync.mjs",
+    "sync:network": "node scripts/sync-network.mjs",
+    "sync:all": "node scripts/clean-and-pull.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

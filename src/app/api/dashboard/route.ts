@@ -36,12 +36,12 @@ export async function GET(request: Request) {
         const fetchStartTime = new Date().toISOString();
 
         if (!lastFetch) {
-            // INITIAL FETCH: Get everything within a reasonable initial window
-            console.log(`CACHE MISS: Performing initial data load from Firestore...`);
+            // INITIAL FETCH: Load all historical records from 2022-01-01 into in-memory cache
+            console.log(`CACHE MISS: Performing initial data load from Firestore (from 2022-01-01)...`);
 
             const snapshots = await Promise.all(
                 collections.map(c => {
-                    return getDocs(query(collection(db, c), where("date", ">=", from)));
+                    return getDocs(query(collection(db, c), where("date", ">=", "2022-01-01")));
                 })
             );
 

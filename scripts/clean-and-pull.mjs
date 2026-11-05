@@ -314,6 +314,13 @@ async function syncNepalApplications(status, startDate, endDate) {
         const hostLcName = a.opportunity?.host_lc?.name || "Unknown LC";
         const hostMcName = a.opportunity?.host_lc?.parent?.name || "Unknown MC";
 
+        const statusDate =
+          status === "applied" ? a.created_at :
+          status === "accepted" ? (a.date_matched || a.created_at) :
+          status === "approved" ? (a.date_approved || a.date_matched || a.created_at) :
+          status === "realized" ? (a.date_realized || a.date_approved || a.created_at) :
+          (a.experience_end_date || a.date_realized || a.created_at);
+
         batch.set(docRef, {
           id: String(a.id),
           person_id: a.person?.id ? String(a.person.id) : null,
@@ -328,7 +335,7 @@ async function syncNepalApplications(status, startDate, endDate) {
           realized_at: a.date_realized || null,
           finished_at: a.experience_end_date || null,
           completed_at: a.status === "completed" ? a.experience_end_date : null,
-          date: a[status + "_at"] || a.created_at || a.date_approved || null,
+          date: statusDate || a.created_at || null,
           home_lc: homeLcName,
           home_lc_id: a.person?.home_lc?.id ? String(a.person.home_lc.id) : null,
           home_mc: homeMcName,

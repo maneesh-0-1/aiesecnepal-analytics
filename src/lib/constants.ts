@@ -14,11 +14,16 @@ export const STAGE_KEYS = ["APL", "Accepted", "APD", "RE", "FN", "CO"] as const;
 export const STAGE_COLORS = ["#037EF3", "#0CB9C1", "#F48924", "#00C16E", "#7B52CC", "#F85A40"];
 
 export const REGION_COLORS: Record<string, string> = {
+    Bagmati: "#037EF3",
+    Gandaki: "#00C16E",
+    Lumbini: "#F48924",
+    National: "#7B52CC",
+    Central: "#7B52CC",
+    Western: "#00C16E",
     North: "#037EF3",
     South: "#00C16E",
     East: "#F48924",
     West: "#F85A40",
-    Central: "#7B52CC",
     Other: "#94a3b8"
 };
 

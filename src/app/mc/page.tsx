@@ -34,7 +34,7 @@ const item = {
 
 function MCTermStatsContent() {
     const searchParams = useSearchParams();
-    const mcId = searchParams.get("mcId") || "1585";
+    const mcId = searchParams.get("mcId") || "112";
 
     const now = new Date();
     const isAfterJul = now.getMonth() >= 7;

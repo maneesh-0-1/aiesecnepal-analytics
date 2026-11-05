@@ -27,7 +27,7 @@ const COL_WIDTHS = {
 
 function LCTermStatsContent() {
     const searchParams = useSearchParams();
-    const mcId = searchParams.get("mcId") || "1585";
+    const mcId = searchParams.get("mcId") || "112";
 
     const now = new Date();
     const currentYear = now.getFullYear();

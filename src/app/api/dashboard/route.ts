@@ -11,16 +11,16 @@ export async function GET(request: Request) {
         const from = searchParams.get("from") || "2025-02-01";
         const to = searchParams.get("to") || new Date().toISOString();
         const level = (searchParams.get("level") || "mc") as "global" | "mc";
-        const mcId = searchParams.get("mcId") || "1585"; // Default to India for now
+        const mcId = searchParams.get("mcId") || "112"; // Default to Nepal
         const forceRefresh = searchParams.get("refresh") === "true";
 
         if (forceRefresh) {
             ServerCache.clearEvents();
         }
 
-        // Find MC name for fallback filtering
-        const targetMc = mcList.find(m => m.id === mcId);
-        const targetMcName = targetMc?.name?.toLowerCase();
+        // Target Nepal entity
+        const targetMc = mcList.find(m => m.id === mcId) || mcList[0];
+        const targetMcName = "nepal";
 
         // 1. Get current sync metadata from Firestore to show on UI
         const metaRef = doc(db, "meta", "sync_status");

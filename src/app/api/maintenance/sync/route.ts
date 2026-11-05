@@ -11,9 +11,9 @@ export async function GET(request: Request) {
     const status = searchParams.get('status') || undefined;
     const force = searchParams.get('force') === 'true';
     const mcIdParam = searchParams.get('mcId');
-    const mcId = mcIdParam === 'global' || mcIdParam === '0' || !mcIdParam ? null : parseInt(mcIdParam);
+    const mcId = mcIdParam === 'global' || mcIdParam === '0' || !mcIdParam ? 112 : parseInt(mcIdParam);
 
-    console.log(`[API] Maintenance Sync triggered. MC: ${mcId || 'GLOBAL'}, Type: ${status || 'all'}, Range: ${from || 'last'} to ${to || 'now'}, Force: ${force}, Limit: ${limit}`);
+    console.log(`[API] Maintenance Sync triggered. MC: ${mcId} (Nepal), Type: ${status || 'all'}, Range: ${from || 'last'} to ${to || 'now'}, Force: ${force}, Limit: ${limit}`);
 
     try {
         const result = await syncExpaToFirestore(from, to, mcId, limit, status, force);

@@ -200,14 +200,12 @@ export function aggregateApplications(
                     processForEntity(hostId, hostName, hostRegion, true);
                 }
             } else {
-                // MC Level - LC Attribution
-                const isIndia = targetMcId === "1585" || app.home_mc?.toLowerCase().includes("india") || app.host_mc?.toLowerCase().includes("india");
-
+                // MC Level - Nepal LC Attribution
                 if (isIcxForMC) {
                     const lcName = (app.host_lc || "").replace(/^AIESEC in\s+/i, '').trim();
                     if (lcName) {
                         const lcId = String(app.host_lc_id || lcName.toLowerCase().replace(/\s+/g, "-"));
-                        const region = isIndia ? (REGION_MAP[lcName] || "Other") : (app.host_mc || "National");
+                        const region = REGION_MAP[lcName] || "Bagmati";
                         processForEntity(lcId, lcName, region, true);
                     }
                 }
@@ -215,7 +213,7 @@ export function aggregateApplications(
                     const lcName = (app.home_lc || "").replace(/^AIESEC in\s+/i, '').trim();
                     if (lcName) {
                         const lcId = String(app.home_lc_id || lcName.toLowerCase().replace(/\s+/g, "-"));
-                        const region = isIndia ? (REGION_MAP[lcName] || "Other") : (app.home_mc || "National");
+                        const region = REGION_MAP[lcName] || "Bagmati";
                         processForEntity(lcId, lcName, region, false);
                     }
                 }
@@ -239,10 +237,10 @@ export function aggregateApplications(
                 const entity = createEntity(id, mcName, region);
                 entity.signups++;
             }
-        } else if (targetMcId && mcId === targetMcId) {
+        } else if (!targetMcId || mcId === targetMcId || mcName.toLowerCase().includes("nepal")) {
             if (lcName) {
                 const id = String(app.home_lc_id || lcName.toLowerCase().replace(/\s+/g, "-"));
-                const region = (targetMcId === "1585") ? (REGION_MAP[lcName] || "Other") : (app.home_mc || "National");
+                const region = REGION_MAP[lcName] || "Bagmati";
                 const entity = createEntity(id, lcName, region);
                 entity.signups++;
             }

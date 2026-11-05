@@ -2,13 +2,12 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Users, Target, Zap,
-  ArrowUpRight, ArrowDownRight,
-  Activity, Globe,
+  Activity, Sparkles,
   FileText, CheckCircle2, Award, Trophy,
-  BarChart3, ShieldCheck, Layers
+  BarChart3, Layers, MapPin
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -35,7 +34,7 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
 };
 
-export default function GlobalOverview() {
+export default function NepalNationalCockpit() {
   const router = useRouter();
 
   const now = new Date();
@@ -53,7 +52,7 @@ export default function GlobalOverview() {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/dashboard?from=${from}&to=${to}&level=global`);
+      const res = await fetch(`/api/dashboard?from=${from}&to=${to}&level=mc&mcId=112`);
       const d = await res.json();
       setData(d);
     } catch (e) {
@@ -86,7 +85,7 @@ export default function GlobalOverview() {
   const timeSeries = data?.TIME_SERIES ?? [];
   const breakdownList = data?.BREAKDOWN ?? [];
 
-  const globalFunnel = useMemo(() => {
+  const nationalFunnel = useMemo(() => {
     return STAGE_KEYS.map((label, si) => {
       const total = selectedProduct === "Total"
         ? PRODUCTS.reduce((sum, p) => sum + (kpis[p]?.[si + 1]?.value ?? 0), 0)
@@ -96,83 +95,106 @@ export default function GlobalOverview() {
   }, [kpis, selectedProduct]);
 
   const conversions = useMemo(() => {
-    const f = globalFunnel;
+    const f = nationalFunnel;
     return [
-      { from: "APL", to: "ACC", rate: pct(f[1]?.value, f[0]?.value) },
-      { from: "ACC", to: "APD", rate: pct(f[2]?.value, f[1]?.value) },
-      { from: "APD", to: "RE", rate: pct(f[3]?.value, f[2]?.value) },
-      { from: "RE", to: "FN", rate: pct(f[4]?.value, f[3]?.value) },
-      { from: "FN", to: "CO", rate: pct(f[5]?.value, f[4]?.value) },
-      { from: "APL", to: "RE", rate: pct(f[3]?.value, f[0]?.value) },
+      { from: 'APL', to: 'ACC', rate: pct(f[1]?.value, f[0]?.value) },
+      { from: 'ACC', to: 'APD', rate: pct(f[2]?.value, f[1]?.value) },
+      { from: 'APD', to: 'RE', rate: pct(f[3]?.value, f[2]?.value) },
+      { from: 'RE', to: 'FN', rate: pct(f[4]?.value, f[3]?.value) },
+      { from: 'FN', to: 'CO', rate: pct(f[5]?.value, f[4]?.value) },
     ];
-  }, [globalFunnel]);
+  }, [nationalFunnel]);
 
   const productMix = useMemo(() => {
-    const mIdx = metric === 'realized' ? 4 : 3;
-    return PRODUCTS.map(p => ({
-      name: p,
-      value: kpis[p]?.[mIdx]?.value ?? 0,
-      color: PRODUCT_COLORS[p],
-    })).sort((a, b) => b.value - a.value);
+    return PRODUCTS.map((p, i) => {
+      const stageIdx = metric === 'realized' ? 4 : 3;
+      const count = kpis[p]?.[stageIdx]?.value ?? 0;
+      return {
+        name: p,
+        value: count,
+        color: PRODUCT_COLORS[p] || STAGE_COLORS[i % STAGE_COLORS.length]
+      };
+    }).filter(p => p.value > 0);
   }, [kpis, metric]);
 
-  const mcPerformance = useMemo(() => {
-    const mKey = metric === 'realized' ? 'realized' : 'approved';
-    const pKey = metric === 'realized' ? 're' : 'appr';
-
-    return [...breakdownList].sort((a: any, b: any) => {
-      if (selectedProduct === "Total") return (b[mKey] || 0) - (a[mKey] || 0);
-      return (b.products?.[selectedProduct]?.[pKey] || 0) - (a.products?.[selectedProduct]?.[pKey] || 0);
-    }).slice(0, 15);
+  const lcPerformance = useMemo(() => {
+    return [...breakdownList].sort((a, b) => {
+      const mKey = metric === 'realized' ? 'realized' : 'approved';
+      const aVal = selectedProduct === "Total" ? a[mKey] : a.products?.[selectedProduct]?.[metric === 'realized' ? 're' : 'appr'] || 0;
+      const bVal = selectedProduct === "Total" ? b[mKey] : b.products?.[selectedProduct]?.[metric === 'realized' ? 're' : 'appr'] || 0;
+      return (bVal || 0) - (aVal || 0);
+    });
   }, [breakdownList, metric, selectedProduct]);
 
-  if (loading && !data) return <LoadingScreen label="Syncing Global Network..." />;
+  if (loading && !data) {
+    return <LoadingScreen label="Loading Nepal National Cockpit..." />;
+  }
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="show"
-      variants={container}
-      style={{ display: 'flex', flexDirection: 'column', gap: 32, padding: "20px 0" }}
-    >
-
-      {/* ── Header Section ─────────────────────────────────────────── */}
-      <motion.div variants={item} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-        <div className="section-header">
+    <motion.div variants={container} initial="hidden" animate="show" style={{ paddingBottom: 60 }}>
+      {/* ── Top Header ────────────────────────────────────────────── */}
+      <motion.div variants={item} style={{ marginBottom: 28 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 16, marginBottom: 20 }}>
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
-              <div style={{ padding: '4px 12px', background: 'var(--aiesec-blue)', color: 'white', borderRadius: 100, fontSize: 10, fontWeight: 900, letterSpacing: '0.1em' }}>GLOBAL NETWORK OVERVIEW</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, fontWeight: 800, color: "var(--text-muted)", background: "var(--bg-card)", border: "1px solid var(--border)", padding: "4px 12px", borderRadius: 100 }}>
-                <Globe size={12} /> {breakdownList.length} MEMBER COMMITTEES
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+              <div style={{
+                padding: "4px 10px",
+                borderRadius: 20,
+                background: "rgba(3, 126, 243, 0.1)",
+                color: "var(--accent)",
+                fontSize: 11,
+                fontWeight: 900,
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6
+              }}>
+                <Sparkles size={12} /> MC Nepal • National Cockpit
               </div>
             </div>
-            <h1 className="section-title" style={{ fontSize: 40, fontWeight: 900, lineHeight: 1 }}>Network <span style={{ color: 'var(--accent)' }}>Dashboard</span></h1>
-            <p className="section-subtitle" style={{ fontSize: 16, marginTop: 8 }}>Real-time Global Operations Status • AIESEC International</p>
+            <h1 className="cockpit-title" style={{ fontSize: 32, letterSpacing: "-0.03em" }}>
+              AIESEC IN <span style={{ color: "var(--accent)" }}>NEPAL</span>
+            </h1>
+            <p className="section-subtitle" style={{ fontSize: 15, marginTop: 6 }}>
+              Real-time Operations & LC Performance Analytics • Term {termStartYear}/{termStartYear + 1}
+            </p>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 12 }} className="desktop-only">
-            <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Global Term Period</div>
-            <TermSelector from={from} to={to} onChange={(f, t) => { setFrom(f); setTo(t); }} />
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10 }} className="desktop-only">
+            <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Term Selection
+            </div>
+            <TermSelector from={from} to={to} onChange={(f, t) => { setFrom(f); setTo(t); }} type="MC" />
           </div>
         </div>
 
-        <div className="mobile-only" style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Global Term Period</div>
-          <TermSelector from={from} to={to} onChange={(f, t) => { setFrom(f); setTo(t); }} />
+        <div className="mobile-only" style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>
+            Term Selection
+          </div>
+          <TermSelector from={from} to={to} onChange={(f, t) => { setFrom(f); setTo(t); }} type="MC" />
         </div>
 
         {/* ── Filter Toolbar ────────────────────────────────────────── */}
         <div className="filter-toolbar">
           <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
             <div className="filter-group">
-              <span style={{ fontSize: 9, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", paddingLeft: 4 }}>Focus Product</span>
+              <span style={{ fontSize: 9, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", paddingLeft: 4 }}>
+                Product
+              </span>
               <div className="filter-options">
                 {["Total", ...PRODUCTS].map(p => (
                   <button
                     key={p}
                     onClick={() => setSelectedProduct(p)}
                     style={{
-                      padding: "6px 14px", borderRadius: 7, border: "none", fontSize: 10, fontWeight: 900, cursor: "pointer",
+                      padding: "6px 14px",
+                      borderRadius: 7,
+                      border: "none",
+                      fontSize: 10,
+                      fontWeight: 900,
+                      cursor: "pointer",
                       background: selectedProduct === p ? (p === "Total" ? "var(--accent)" : PRODUCT_COLORS[p as keyof typeof PRODUCT_COLORS]) : "transparent",
                       color: selectedProduct === p ? "white" : "var(--text-muted)",
                       transition: "all 0.2s"
@@ -186,12 +208,19 @@ export default function GlobalOverview() {
             <div className="filter-separator" />
 
             <div className="filter-group">
-              <span style={{ fontSize: 9, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", paddingLeft: 4 }}>Primary Metric</span>
+              <span style={{ fontSize: 9, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", paddingLeft: 4 }}>
+                Metric
+              </span>
               <div className="filter-options">
                 <button
                   onClick={() => setMetric('approved')}
                   style={{
-                    padding: "6px 16px", borderRadius: 7, border: "none", fontSize: 10, fontWeight: 900, cursor: "pointer",
+                    padding: "6px 16px",
+                    borderRadius: 7,
+                    border: "none",
+                    fontSize: 10,
+                    fontWeight: 900,
+                    cursor: "pointer",
                     background: metric === 'approved' ? "var(--accent)" : "transparent",
                     color: metric === 'approved' ? "white" : "var(--text-muted)",
                     transition: "all 0.2s"
@@ -201,12 +230,17 @@ export default function GlobalOverview() {
                 <button
                   onClick={() => setMetric('realized')}
                   style={{
-                    padding: "6px 16px", borderRadius: 7, border: "none", fontSize: 10, fontWeight: 900, cursor: "pointer",
+                    padding: "6px 16px",
+                    borderRadius: 7,
+                    border: "none",
+                    fontSize: 10,
+                    fontWeight: 900,
+                    cursor: "pointer",
                     background: metric === 'realized' ? "var(--accent)" : "transparent",
                     color: metric === 'realized' ? "white" : "var(--text-muted)",
                     transition: "all 0.2s"
                   }}>
-                  REALISATIONS
+                  REALIZATIONS
                 </button>
               </div>
             </div>
@@ -214,29 +248,28 @@ export default function GlobalOverview() {
 
           <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--success)", fontSize: 11, fontWeight: 800 }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--success)", boxShadow: "0 0 8px var(--success)" }} />
-            SYSTEM HEALTH: OPTIMAL
+            NEPAL ENTITY: ONLINE
           </div>
         </div>
-
       </motion.div>
 
-      {/* Executive Summary Grid */}
+      {/* ── National Executive Summary Grid ────────────────────────── */}
       <motion.section variants={item}>
         <div className="stats-grid">
-          <KpiCard label="Global SU" value={fmt(totals.signups)} sub="New Users" icon={Users} color="var(--aiesec-blue)" delay={0.1} />
-          <KpiCard label="Global APL" value={fmt(totals.applications)} sub="Applicants" icon={FileText} color="#0CB9C1" delay={0.2} />
-          <KpiCard label={metric === 'realized' ? "Global RE" : "Global APD"} value={fmt(metric === 'realized' ? totals.realized : totals.approved)} sub={metric === 'realized' ? "Realizations" : "Approvals"} icon={metric === 'realized' ? Zap : Target} color={metric === 'realized' ? "var(--aiesec-jade)" : "var(--aiesec-orange)"} delay={0.3} />
-          <KpiCard label="Global FN" value={fmt(totals.finished)} sub="End Dates" icon={CheckCircle2} color="var(--aiesec-purple)" delay={0.4} />
-          <KpiCard label="Global CO" value={fmt(totals.completed)} sub="Completions" icon={Award} color="var(--aiesec-sun)" delay={0.5} />
+          <KpiCard label="National SU" value={fmt(totals.signups)} sub="Sign-ups" icon={Users} color="var(--aiesec-blue)" delay={0.1} />
+          <KpiCard label="National APL" value={fmt(totals.applications)} sub="Applicants" icon={FileText} color="#0CB9C1" delay={0.2} />
+          <KpiCard label={metric === 'realized' ? "National RE" : "National APD"} value={fmt(metric === 'realized' ? totals.realized : totals.approved)} sub={metric === 'realized' ? "Realizations" : "Approvals"} icon={metric === 'realized' ? Zap : Target} color={metric === 'realized' ? "var(--aiesec-jade)" : "var(--aiesec-orange)"} delay={0.3} />
+          <KpiCard label="National FN" value={fmt(totals.finished)} sub="Finished" icon={CheckCircle2} color="var(--aiesec-purple)" delay={0.4} />
+          <KpiCard label="National CO" value={fmt(totals.completed)} sub="Completed" icon={Award} color="var(--aiesec-sun)" delay={0.5} />
           <KpiCard label="Conversion" value={(totals.efficiency || 0) + "%"} sub="APL to RE" icon={Activity} color="var(--text-muted)" delay={0.6} />
         </div>
       </motion.section>
 
-      {/* Main Grid ───────────────────────────────────────────────── */}
+      {/* ── Charts Grid ───────────────────────────────────────────── */}
       <motion.div variants={item} className="responsive-grid two-cols">
 
-        {/* 1. Global Time Series */}
-        <SectionCard title="Global Performance Trend" subtitle={`Consolidated network ${metric === 'realized' ? 'realizations' : 'approvals'} over time`} icon={Activity}>
+        {/* 1. National Performance Trend */}
+        <SectionCard title="National Trend" subtitle={`Nepal operational ${metric === 'realized' ? 'realizations' : 'approvals'} over time`} icon={Activity}>
           <div style={{ height: 320 }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={timeSeries}>
@@ -254,13 +287,13 @@ export default function GlobalOverview() {
                 <Tooltip {...tooltipStyle} />
                 <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, fontWeight: 800 }} />
                 {(selectedProduct === "Total" || selectedProduct.endsWith("GV")) && (
-                  <Area type="monotone" dataKey={(v: any) => (v[`${metric === 'realized' ? 're' : 'appr'}_iGV`] || 0) + (v[`${metric === 'realized' ? 're' : 'appr'}_oGV`] || 0)} name="GV (Global)" stroke={STAGE_COLORS[0]} fill={`url(#grad-GV)`} strokeWidth={2.5} />
+                  <Area type="monotone" dataKey={(v: any) => (v[`${metric === 'realized' ? 're' : 'appr'}_iGV`] || 0) + (v[`${metric === 'realized' ? 're' : 'appr'}_oGV`] || 0)} name="GV" stroke={STAGE_COLORS[0]} fill={`url(#grad-GV)`} strokeWidth={2.5} />
                 )}
                 {(selectedProduct === "Total" || selectedProduct.endsWith("GTa")) && (
-                  <Area type="monotone" dataKey={(v: any) => (v[`${metric === 'realized' ? 're' : 'appr'}_iGTa`] || 0) + (v[`${metric === 'realized' ? 're' : 'appr'}_oGTa`] || 0)} name="GTa (Global)" stroke={STAGE_COLORS[1]} fill={`url(#grad-GTa)`} strokeWidth={2.5} />
+                  <Area type="monotone" dataKey={(v: any) => (v[`${metric === 'realized' ? 're' : 'appr'}_iGTa`] || 0) + (v[`${metric === 'realized' ? 're' : 'appr'}_oGTa`] || 0)} name="GTa" stroke={STAGE_COLORS[1]} fill={`url(#grad-GTa)`} strokeWidth={2.5} />
                 )}
                 {(selectedProduct === "Total" || selectedProduct.endsWith("GTe")) && (
-                  <Area type="monotone" dataKey={(v: any) => (v[`${metric === 'realized' ? 're' : 'appr'}_iGTe`] || 0) + (v[`${metric === 'realized' ? 're' : 'appr'}_oGTe`] || 0)} name="GTe (Global)" stroke={STAGE_COLORS[2]} fill={`url(#grad-GTe)`} strokeWidth={2.5} />
+                  <Area type="monotone" dataKey={(v: any) => (v[`${metric === 'realized' ? 're' : 'appr'}_iGTe`] || 0) + (v[`${metric === 'realized' ? 're' : 'appr'}_oGTe`] || 0)} name="GTe" stroke={STAGE_COLORS[2]} fill={`url(#grad-GTe)`} strokeWidth={2.5} />
                 )}
               </AreaChart>
             </ResponsiveContainer>
@@ -268,7 +301,7 @@ export default function GlobalOverview() {
         </SectionCard>
 
         {/* 2. Product Volume Breakdown */}
-        <SectionCard title="Product Mix" subtitle={`Global ${metric} distribution across programmes`} icon={Layers}>
+        <SectionCard title="Product Mix in Nepal" subtitle={`Distribution across programmes for ${metric}`} icon={Layers}>
           <div style={{ height: 220 }}>
             <ResponsiveContainer width="100%" height="100%">
               <RePie>
@@ -301,13 +334,13 @@ export default function GlobalOverview() {
         </SectionCard>
       </motion.div>
 
-      {/* ── Rankings and Efficiency ────────────────────────────────── */}
+      {/* ── Nepal LC Leaderboard & Funnel ──────────────────────────── */}
       <motion.div variants={item} className="responsive-grid two-cols">
 
-        {/* 3. Global MC Rankings */}
+        {/* 3. Nepal Local Committee Leaderboard */}
         <SectionCard
-          title="Global Performance Matrix"
-          subtitle={`Top Member Committees by ${selectedProduct} ${metric} volume`}
+          title="Local Committees Leaderboard"
+          subtitle={`Ranking Nepal LCs by ${selectedProduct} ${metric}`}
           icon={Trophy}
           accent="var(--aiesec-sun)"
         >
@@ -315,31 +348,36 @@ export default function GlobalOverview() {
             <table className="pro-table">
               <thead>
                 <tr>
-                  <th style={{ textAlign: 'left' }}>Member Committee</th>
+                  <th style={{ textAlign: 'left' }}>Local Committee</th>
                   <th style={{ textAlign: 'center' }}>APD</th>
                   <th style={{ textAlign: 'center' }}>RE</th>
                   <th style={{ textAlign: 'center' }}>Conv %</th>
-                  <th style={{ textAlign: 'right' }}>Volume</th>
+                  <th style={{ textAlign: 'right' }}>Performance</th>
                 </tr>
               </thead>
               <tbody>
-                {mcPerformance.map((mc: any, idx) => {
+                {lcPerformance.map((lc: any, idx) => {
                   const mKey = metric === 'realized' ? 'realized' : 'approved';
                   const pKey = metric === 'realized' ? 're' : 'appr';
-                  const val = selectedProduct === "Total" ? mc[mKey] : mc.products?.[selectedProduct]?.[pKey];
-                  const apps = selectedProduct === "Total" ? mc.applications : mc.products?.[selectedProduct]?.app;
+                  const val = selectedProduct === "Total" ? lc[mKey] : lc.products?.[selectedProduct]?.[pKey];
+                  const apps = selectedProduct === "Total" ? lc.applications : lc.products?.[selectedProduct]?.app;
                   const conv = pct(val, apps);
 
                   return (
-                    <tr key={mc.id}>
+                    <tr
+                      key={lc.id}
+                      onClick={() => router.push(`/lc/${lc.id}`)}
+                      style={{ cursor: "pointer" }}
+                    >
                       <td style={{ fontWeight: 800, color: 'var(--text-primary)' }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <span style={{ color: "var(--text-muted)", fontSize: 10, width: 14 }}>{idx + 1}</span>
-                          {mc.name}
+                          <MapPin size={12} color="var(--accent)" />
+                          {lc.name}
                         </div>
                       </td>
-                      <td style={{ textAlign: 'center', fontWeight: 600 }}>{fmt(mc.approved)}</td>
-                      <td style={{ textAlign: 'center', fontWeight: 800, color: "var(--aiesec-jade)" }}>{fmt(mc.realized)}</td>
+                      <td style={{ textAlign: 'center', fontWeight: 600 }}>{fmt(lc.approved)}</td>
+                      <td style={{ textAlign: 'center', fontWeight: 800, color: "var(--aiesec-jade)" }}>{fmt(lc.realized)}</td>
                       <td style={{ textAlign: 'center' }}>
                         <span style={{ padding: "2px 6px", borderRadius: 4, background: Number(conv) > 10 ? "var(--success-soft)" : "var(--bg-app)", color: Number(conv) > 10 ? "var(--success)" : "inherit", fontSize: 11, fontWeight: 800 }}>
                           {conv}%
@@ -349,7 +387,7 @@ export default function GlobalOverview() {
                         <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "flex-end" }}>
                           <span style={{ fontSize: 13, fontWeight: 900 }}>{fmt(val)}</span>
                           <div style={{ width: 40, height: 4, background: "var(--border-muted)", borderRadius: 10 }}>
-                            <div style={{ height: "100%", background: "var(--accent)", width: `${Math.min(100, (val / (mcPerformance[0] as any)[mKey]) * 100)}%` }} />
+                            <div style={{ height: "100%", background: "var(--accent)", width: `${Math.min(100, ((val || 0) / ((lcPerformance[0] as any)?.[mKey] || 1)) * 100)}%` }} />
                           </div>
                         </div>
                       </td>
@@ -361,12 +399,12 @@ export default function GlobalOverview() {
           </div>
         </SectionCard>
 
-        {/* 4. Global Funnel & Stats */}
+        {/* 4. Nepal Conversion Funnel */}
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          <SectionCard title="Network Funnel" subtitle="Average conversion across all MCs" icon={Target}>
+          <SectionCard title="National Conversion Funnel" subtitle="Nepal overall funnel flow from Sign-up to Completion" icon={Target}>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {globalFunnel.map((stage, i) => {
-                const maxVal = globalFunnel[0]?.value || 1;
+              {nationalFunnel.map((stage, i) => {
+                const maxVal = nationalFunnel[0]?.value || 1;
                 const rate = i > 0 ? conversions[i - 1].rate : null;
                 return (
                   <div key={stage.label}>
@@ -390,18 +428,18 @@ export default function GlobalOverview() {
             </div>
           </SectionCard>
 
-          <SectionCard title="Volume Efficiency" subtitle="MC performance clustering" icon={BarChart3}>
-            <div style={{ height: 200 }}>
+          <SectionCard title="LC Efficiency Matrix" subtitle="Local Committee conversion density" icon={BarChart3}>
+            <div style={{ height: 180 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: -20 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-muted)" />
                   <XAxis type="number" dataKey="x" name="Volume" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} label={{ value: 'VOLUME', position: 'insideBottom', offset: -5, fontSize: 9, fontWeight: 900 }} />
                   <YAxis type="number" dataKey="y" name="Efficiency" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} label={{ value: 'CONV%', angle: -90, position: 'insideLeft', fontSize: 9, fontWeight: 900 }} />
                   <Tooltip cursor={{ strokeDasharray: '3 3' }} {...tooltipStyle} />
-                  <Scatter name="MCs" data={breakdownList.map((mc: any) => ({
-                    x: mc.realized || 0,
-                    y: (mc.realized / (mc.applications || 1)) * 100,
-                    name: mc.name
+                  <Scatter name="LCs" data={breakdownList.map((lc: any) => ({
+                    x: lc.realized || 0,
+                    y: (lc.realized / (lc.applications || 1)) * 100,
+                    name: lc.name
                   }))} fill="var(--aiesec-blue)" />
                 </ScatterChart>
               </ResponsiveContainer>
@@ -413,7 +451,7 @@ export default function GlobalOverview() {
 
       {/* Analytics Footer */}
       <footer style={{
-        padding: '40px 0',
+        padding: '30px 0',
         borderTop: '1px solid var(--border-muted)',
         display: 'flex',
         justifyContent: 'space-between',
@@ -421,10 +459,12 @@ export default function GlobalOverview() {
         marginTop: 20
       }}>
         <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
-          Global Operations Dashboard • Generated on {new Date().toLocaleDateString('en-IN', { dateStyle: 'long' })}
+          AIESEC in Nepal • National Analytics Cockpit
         </div>
         <div style={{ display: 'flex', gap: 24 }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>v4.0.0-GLOBAL</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+            MC NEPAL (112)
+          </span>
         </div>
       </footer>
     </motion.div>

@@ -4,8 +4,8 @@ import { MobileLayout } from "@/components/MobileLayout";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  title: "AIESEC | Global Operational Cockpit",
-  description: "Advanced insight-driven dashboard for AIESEC global national operations.",
+  title: "AIESEC in Nepal | National Analytics Cockpit",
+  description: "Real-time Operational & Local Committee Analytics for AIESEC in Nepal",
 };
 
 export default function RootLayout({

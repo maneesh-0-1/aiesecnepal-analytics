@@ -40,7 +40,7 @@ function LCDetailPageContent() {
     const params = useParams();
     const searchParams = useSearchParams();
     const lcId = params.id as string;
-    const mcId = searchParams.get("mcId") || "1585";
+    const mcId = searchParams.get("mcId") || "112";
 
     const now = new Date();
     const currentYear = now.getFullYear();

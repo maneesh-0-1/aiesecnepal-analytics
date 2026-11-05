@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "worker": "node scripts/auto-sync.mjs",
+    "sync:expa": "node scripts/sync-expa.mjs",
     "sync:network": "node scripts/sync-network.mjs",
     "sync:all": "node scripts/clean-and-pull.mjs"
   },

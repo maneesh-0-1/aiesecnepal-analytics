@@ -3,17 +3,21 @@ import React from "react";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, limit, orderBy } from "firebase/firestore";
 
+// Force dynamic rendering so it doesn't fail at build time
+export const dynamic = 'force-dynamic';
+
 // Server-side fetching function from Firestore
 async function getOGXData() {
     try {
         const q = query(
             collection(db, "applications"),
             where("type", "==", "oGX"),
-            orderBy("updated_at", "desc"),
             limit(50)
         );
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        return snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .sort((a: any, b: any) => (b.updated_at || "").localeCompare(a.updated_at || ""));
     } catch (e) {
         console.error("Management fetch error:", e);
         return [];

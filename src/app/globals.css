@@ -1,6 +1,11 @@
 /* Fonts are loaded via next/font in layout.tsx — no @import needed */
 
 :root {
+  /* Fonts */
+  --font-lato: 'Lato', ui-sans-serif, system-ui, sans-serif;
+  --font-raleway: 'Raleway', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
   /* AIESEC Brand Colors */
   --aiesec-blue: #037ef3;
   --aiesec-orange: #f85a40;

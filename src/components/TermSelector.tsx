@@ -69,34 +69,21 @@ export const TermSelector = ({ from, to, onChange, type = 'MC' }: TermSelectorPr
                             onClick={() => onChange(p.from, p.to)}
                             style={{
                                 border: 'none',
-                                background: 'transparent',
-                                color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
+                                background: isActive ? 'var(--accent)' : 'transparent',
+                                color: isActive ? '#ffffff' : 'var(--text-secondary)',
                                 cursor: 'pointer',
-                                padding: '6px 12px',
+                                padding: '6px 14px',
                                 fontSize: 11,
                                 fontWeight: 800,
                                 borderRadius: 'var(--radius-sm)',
-                                position: 'relative',
-                                transition: '0.2s',
+                                boxShadow: isActive ? '0 2px 8px rgba(3, 126, 243, 0.35)' : 'none',
+                                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
                                 textTransform: 'uppercase',
-                                letterSpacing: '0.02em'
+                                letterSpacing: '0.02em',
+                                userSelect: 'none'
                             }}
                         >
-                            {isActive && (
-                                <motion.div
-                                    layoutId="active-preset"
-                                    style={{
-                                        position: 'absolute',
-                                        inset: 0,
-                                        background: 'var(--accent)',
-                                        borderRadius: 'var(--radius-sm)',
-                                        zIndex: 0
-                                    }}
-                                />
-                            )}
-                            <span style={{ position: 'relative', zIndex: 1, color: isActive ? 'white' : 'inherit' }}>
-                                {p.label}
-                            </span>
+                            {p.label}
                         </button>
                     );
                 })}
